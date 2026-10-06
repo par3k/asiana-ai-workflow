@@ -13,9 +13,10 @@ class Member(Base):
     password = Column(String, nullable=False)
     name = Column(String, nullable=True)
     age = Column(Integer, nullable=True)
-    del_yn = Column(String(1), nullable=False, default='N')
+    del_yn = Column(String(1), nullable=False, default='N') # soft delete 기능위한 파라미터
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
+    # FK 관계성 설정위해 등록
     products = relationship("Product", back_populates="registrant")
     orders = relationship("Order", back_populates="member")
     chats = relationship("Chat", back_populates="member")
@@ -33,6 +34,7 @@ class Product(Base):
     del_yn = Column(String(1), nullable=False, default='N')
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
+    # FK 관계성 설정위해 등록
     registrant = relationship("Member", back_populates="products")
     orders = relationship("Order", back_populates="product")
 
@@ -47,6 +49,7 @@ class Order(Base):
     del_yn = Column(String(1), nullable=False, default='N')
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
+    # FK 관계성 설정위해 등록
     member = relationship("Member", back_populates="orders")
     product = relationship("Product", back_populates="orders")
 
