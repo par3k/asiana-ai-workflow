@@ -21,7 +21,7 @@
 - `routers/`: member(`/members` 가입/로그인/me), product, order, document, chat(`/chats`)
 - `services/`: auth, chat_service, order_service, product_service
 - `models/`, `schemas/`, `database.py`, `dependencies.py`: ORM, Pydantic, DB 세션, 인증 의존성
-- `ai/llm_use/`: LLM 호출 (OpenAI 직접 호출 `llm_calling_simple`, LangChain/Ollama `llm_calling_langchain`, 분류 목록)
+- `ai/llm_use/`: LLM 호출 (OpenAI 직접 호출 `llm_calling_simple` — `classify_message`/`generate_response`의 요청·응답·토큰·소요시간·오류를 `api.llm` 로그로 기록(질문/응답은 200자까지), LangChain/Ollama `llm_calling_langchain`, 분류 목록)
 - `ai/rag/`: retriever(하이브리드 검색), vector_store, memory(대화 이력), semantic_cache(Redis)
 - `ai/api_use/`: 1차 분류 후 get_api 처리
   - `chat_classify.py`, `intent_list.py`: QUERY / ACTION / GENERAL 2차 분류
@@ -91,3 +91,4 @@
 - 2026-10-06: API 요청 로그 미들웨어와 라우터별 업무 로그 추가
 - 2026-10-06: 실행 SQL 로그(`sqlalchemy.engine`) 추가 (파라미터 숨김, 파일 전용)
 - 2026-10-06: 커밋/push는 허락 없이 처리하고 결과를 보고하도록 규칙 변경
+- 2026-10-06: OpenAI 직접 호출(`classify_message`, `generate_response`) 통신 로그(`api.llm`) 추가
