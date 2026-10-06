@@ -12,6 +12,20 @@ BACKUP_COUNT = 5              # app.log.1 ~ app.log.5 까지 보관, 그 이상�
 _FORMAT = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
 
 
+class _TruncateSqlRecords(logging.Filter):
+    """sqlalchemy.engine 로그 한 건이 너무 길면 잘라서 기록한다."""
+
+    MAX_LEN = 1500
+
+    def filter(self, record):
+        if record.name.startswith("sqlalchemy.engine"):
+            msg = record.getMessage()
+            if len(msg) > self.MAX_LEN:
+                record.msg = msg[: self.MAX_LEN] + f"... (생략, 총 {len(msg)}자)"
+                record.args = ()
+        return True
+
+
 class _StdoutToLog:
     """print() 출력을 콘솔은 그대로 두고 로그 파일에도 한 줄씩 기록한다."""
 
@@ -57,6 +71,12 @@ def setup_logging() -> None:
         logger.addHandler(file_handler)
         if name == "":
             logger.setLevel(logging.INFO)
+
+    # SQL 로그: 실행되는 쿼리를 파일에만 기록 (SQL_LOG=false 로 끌 수 있음)
+    # 임베딩 저장 등 다른 engine(langchain PGVector)의 거대한 파라미터를 막기 위해 길이를 제한한다.
+    if os.getenv("SQL_LOG", "true").lower() != "false":
+        file_handler.addFilter(_TruncateSqlRecords())
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
     # API 로그("api.*")는 콘솔에도 출력 (파일은 root 핸들러로 전파되어 기록)
     console = logging.StreamHandler(sys.stderr)

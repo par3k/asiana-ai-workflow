@@ -17,7 +17,7 @@
 - `main.py`: 앱 진입점. 시작 시 `setup_logging()`과 `create_all`, 종료 시 action_graph의 checkpointer 커넥션 풀 close
 - `middleware.py`: 모든 API 요청을 `api.access` 로그로 기록(요청ID, method, path+query, member_id, client, 상태코드, 소요시간). 비밀번호 등이 있을 수 있어 요청 body와 토큰 값은 기록하지 않는다. 응답 헤더에 `X-Request-ID`
 - 라우터별 업무 로그(`api.member/order/product/document/chat`): 가입·로그인 성공/실패, 주문 생성/취소, 상품 등록/수정/조회, 문서 추가/수정, 챗 질문(100자)·분류·응답길이
-- `logging_config.py`: 로그 파일 롤링. `logs/app.log`(10MB x 5개 보관), `print()`·uvicorn·root 로거를 함께 기록. 위치는 `LOG_DIR`로 변경 가능
+- `logging_config.py`: 로그 파일 롤링. `logs/app.log`(10MB x 5개 보관), `print()`·uvicorn·root 로거를 함께 기록. 위치는 `LOG_DIR`로 변경 가능. 실행되는 SQL(`sqlalchemy.engine`)도 파일에만 기록하며, 바인딩 파라미터는 `database.py`의 `hide_parameters`로 숨기고(`SQL_LOG_PARAMS=true`면 표시), 한 건이 1500자를 넘으면 잘라서 기록한다. `SQL_LOG=false`로 끌 수 있다
 - `routers/`: member(`/members` 가입/로그인/me), product, order, document, chat(`/chats`)
 - `services/`: auth, chat_service, order_service, product_service
 - `models/`, `schemas/`, `database.py`, `dependencies.py`: ORM, Pydantic, DB 세션, 인증 의존성
@@ -76,7 +76,7 @@
 - 실행: `.venv\Scripts\activate` 후 `uvicorn app.main:app --reload` (기본 포트 8000, 문서 `/docs`)
 - DB: 사용자가 Docker로 직접 띄운 PostgreSQL(pgvector) 컨테이너 `postgres-db-with-vector`, 호스트 포트 **5433**, DB 이름 `ai_agent_db`. `action_graph`의 checkpointer도 같은 `DATABASE_URL`로 별도 커넥션 풀을 연다.
 - `.env` 키: `DATABASE_URL`, `SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `OPENAI_API_KEY`, `USE_SEMANTIC_CACHE`, `LANGSMITH_TRACING`, `LANGSMITH_PROJECT`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_BASE_URL`
-- 코드가 읽는 선택 환경변수(`.env`에 없으면 기본값): `REDIS_HOST`(localhost), `REDIS_PORT`(6379), `SEMANTIC_CACHE_TTL`(86400), `LOG_DIR`(프로젝트 루트/logs), `HF_TOKEN`(파인튜닝 전용)
+- 코드가 읽는 선택 환경변수(`.env`에 없으면 기본값): `REDIS_HOST`(localhost), `REDIS_PORT`(6379), `SEMANTIC_CACHE_TTL`(86400), `LOG_DIR`(프로젝트 루트/logs), `SQL_LOG`(true), `SQL_LOG_PARAMS`(false), `HF_TOKEN`(파인튜닝 전용)
 - 로그: 콘솔과 함께 `logs/app.log`에 기록된다(`logs/`는 `.gitignore` 대상). 로그 파일은 `Get-Content -Encoding UTF8`로 읽는다(그냥 열면 한글이 깨져 보인다).
 - `USE_SEMANTIC_CACHE=false`이면 Redis Stack 없이도 `/chats`가 동작한다.
 - Ollama(로컬 설치, 기본 `localhost:11434`; 설치 여부는 `ollama --version`으로 확인): 프로필 응답과 sLLM 분류기에 `llama3.2:3b`(`llm_calling_langchain.py`), SQL 생성 쪽에 `llama3.1:8b`(`api_use/query/generator.py`)를 쓴다. 파인튜닝 모델 테스트는 `localhost:11434`를 호출한다.
@@ -89,3 +89,4 @@
 - 2026-10-06: 원격과 히스토리를 맞춰 git 재초기화 후 `.env` 추적 해제를 `main`에 push, 로그 파일 롤링(`logging_config.py`) 추가
 - 2026-10-06: "깃에 올린다"는 요청은 push까지 포함하며 별도 허락 없이 진행하도록 규칙 변경
 - 2026-10-06: API 요청 로그 미들웨어와 라우터별 업무 로그 추가
+- 2026-10-06: 실행 SQL 로그(`sqlalchemy.engine`) 추가 (파라미터 숨김, 파일 전용)
