@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 load_dotenv()  # 모든 모듈 임포트 전에 .env 로드
 
+from app.logging_config import setup_logging
+setup_logging()  # 로그 파일 롤링 설정 (logs/app.log)
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
