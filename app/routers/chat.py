@@ -1,3 +1,4 @@
+import logging
 
 from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -24,6 +25,7 @@ from app.ai.langgraph.main_graph import run_chat_graph_hitl
 from langsmith import traceable 
 
 router = APIRouter(prefix="/chats", tags=["chat"])
+logger = logging.getLogger("api.chat")
 
 
 @router.post("", response_model=schemas.ChatResponse, status_code=status.HTTP_201_CREATED)
@@ -39,6 +41,8 @@ def create_chat(
 
     # 히트 시: redis에 저장된 값으로 즉시 응답
     # 미스 시: 아래 else 분기 처리로 진행
+    logger.info("챗 요청 member_id=%s 질문=%r", current_member.id, body.message[:100])
+    classification = "cache_hit"
     if cached_response:
         response_text = cached_response
 
@@ -85,6 +89,8 @@ def create_chat(
     # response_text = classify_message_n8n(body.message, credentials.credentials)
         
 
+
+    logger.info("챗 응답 member_id=%s 분류=%s 응답길이=%d", current_member.id, classification, len(response_text))
 
     chat_record = models.Chat(
         member_id=current_member.id,
