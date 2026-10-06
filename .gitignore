@@ -3,8 +3,8 @@
 venv/
 env/
 
-# # 환경변수 (보안)
-# .env
+# 환경변수 (보안)
+.env
 
 # Python 캐시
 __pycache__/
