@@ -58,6 +58,11 @@ def setup_logging() -> None:
         if name == "":
             logger.setLevel(logging.INFO)
 
+    # API 로그("api.*")는 콘솔에도 출력 (파일은 root 핸들러로 전파되어 기록)
+    console = logging.StreamHandler(sys.stderr)
+    console.setFormatter(logging.Formatter(_FORMAT))
+    logging.getLogger("api").addHandler(console)
+
     # print() 캡처: 콘솔 중복 출력을 막기 위해 파일 전용 로거 사용
     stdout_logger = logging.getLogger("stdout")
     stdout_logger.propagate = False

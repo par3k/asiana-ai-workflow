@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text as sql_text
@@ -9,6 +11,7 @@ from app.dependencies import get_db
 from app.ai.rag.vector_store import vector_store
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+logger = logging.getLogger("api.document")
 
 
 
@@ -23,6 +26,7 @@ def add_documents(body: schemas.DocumentCreate, db: Session = Depends(get_db)):
     # 가장일반적인 문장저장 : vector_store.py의 vector_store를 활용하여 저장
     # add_texts()는 임베딩 생성 + langchain_pg_embedding 테이블에 저장
     vector_store.add_texts(chunk_texts)
+    logger.info("문서 추가 %d건", len(body.texts))
 
     return {"added": len(body.texts)}
 
@@ -47,6 +51,7 @@ def list_documents(db: Session = Depends(get_db)):
     rows = db.execute(
         sql_text("SELECT id::text, document FROM langchain_pg_embedding ORDER BY id")
     ).fetchall()
+    logger.info("문서 목록 조회 %d건", len(rows))
     return [{"id": row[0], "content": row[1]} for row in rows]
 
 
@@ -59,6 +64,7 @@ def upsert_document(chunk_id: str, body: schemas.DocumentChunkUpdate, db: Sessio
     ).fetchone()
 
     if not existing:
+        logger.warning("문서 수정 실패(청크 없음) chunk_id=%s", chunk_id)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 청크를 찾을 수 없습니다.")
 
     # 2. 기존 청크 삭제 (UUID 기반)
@@ -72,5 +78,6 @@ def upsert_document(chunk_id: str, body: schemas.DocumentChunkUpdate, db: Sessio
     # 4. Redis Semantic Cache flush
     # 청크 내용이 바뀌면 기존 캐시 응답이 outdated 될 수 있으므로 전체 삭제
     semantic_cache.flush()
+    logger.info("문서 수정 old_id=%s new_id=%s (시맨틱 캐시 전체 삭제)", chunk_id, new_ids[0])
 
     return {"id": new_ids[0], "content": body.text}

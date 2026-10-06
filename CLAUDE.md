@@ -15,6 +15,8 @@
 
 ## 코드 구조 (`app/`)
 - `main.py`: 앱 진입점. 시작 시 `setup_logging()`과 `create_all`, 종료 시 action_graph의 checkpointer 커넥션 풀 close
+- `middleware.py`: 모든 API 요청을 `api.access` 로그로 기록(요청ID, method, path+query, member_id, client, 상태코드, 소요시간). 비밀번호 등이 있을 수 있어 요청 body와 토큰 값은 기록하지 않는다. 응답 헤더에 `X-Request-ID`
+- 라우터별 업무 로그(`api.member/order/product/document/chat`): 가입·로그인 성공/실패, 주문 생성/취소, 상품 등록/수정/조회, 문서 추가/수정, 챗 질문(100자)·분류·응답길이
 - `logging_config.py`: 로그 파일 롤링. `logs/app.log`(10MB x 5개 보관), `print()`·uvicorn·root 로거를 함께 기록. 위치는 `LOG_DIR`로 변경 가능
 - `routers/`: member(`/members` 가입/로그인/me), product, order, document, chat(`/chats`)
 - `services/`: auth, chat_service, order_service, product_service
@@ -86,3 +88,4 @@
 - 2026-10-06: 레포를 새로 받은 상태에 맞춰 최신화 (코드 구조/챗 파이프라인 현황/환경변수 갱신, 존재하지 않는 `chat2`·`text_to_sql` 기술 제거, `.git`·`.venv` 없음 기록). 이어서 `.gitignore`의 `.env` 주석을 풀어 다시 제외 처리, `.venv` 생성 및 서버 기동 확인
 - 2026-10-06: 원격과 히스토리를 맞춰 git 재초기화 후 `.env` 추적 해제를 `main`에 push, 로그 파일 롤링(`logging_config.py`) 추가
 - 2026-10-06: "깃에 올린다"는 요청은 push까지 포함하며 별도 허락 없이 진행하도록 규칙 변경
+- 2026-10-06: API 요청 로그 미들웨어와 라우터별 업무 로그 추가

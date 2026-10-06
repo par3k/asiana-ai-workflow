@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from app.database import engine, Base
+from app.middleware import add_access_log_middleware
 from app.routers import member, product, order, chat
 from app.routers import document
 from app.ai.langgraph.action_graph import _checkpointer_pool
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AI Agent API", lifespan=lifespan)
+add_access_log_middleware(app)  # 모든 API 요청/응답 로그 (api.access)
 
 app.include_router(member.router)
 app.include_router(product.router)
