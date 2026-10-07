@@ -19,9 +19,9 @@ logger = logging.getLogger("api.document")
 def add_documents(body: schemas.DocumentCreate, db: Session = Depends(get_db)):
     # 문서단위, pdf 등 문장 전체일경우
     # 입력된 텍스트들을 청크 단위로 분할
-    # chunks = splitter.create_documents(body.texts)
-    # chunk_texts = [chunk.page_content for chunk in chunks]
-    chunk_texts = [chunk for chunk in body.texts]
+    chunks = splitter.create_documents(body.texts)
+    chunk_texts = [chunk.page_content for chunk in chunks]
+    # chunk_texts = [chunk for chunk in body.texts]
 
     # 가장일반적인 문장저장 : vector_store.py의 vector_store를 활용하여 저장
     # add_texts()는 임베딩 생성 + langchain_pg_embedding 테이블에 저장

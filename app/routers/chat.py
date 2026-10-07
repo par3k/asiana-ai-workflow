@@ -41,22 +41,24 @@ def create_chat(
 
     # 히트 시: redis에 저장된 값으로 즉시 응답
     # 미스 시: 아래 else 분기 처리로 진행
-    logger.info("챗 요청 member_id=%s 질문=%r", current_member.id, body.message[:100])
+    logger.info("[REDIS 조회] 챗 요청 member_id=%s 질문=%r", current_member.id, body.message[:100])
     classification = "cache_hit"
     if cached_response:
         response_text = cached_response
 
     else:
-        classification = classify_message(body.message)
-        # classification = classify_message_langchain(body.message)
+        # classification = classify_message(body.message)
+        classification = classify_message_langchain(body.message)
         print(classification)
         # if classification == "get_api":
         #     response_text = process_api_request(body.message, db, current_member.id)
+        
+        # Tool Calling : 내가 설정한 응답으로만 던져주는 기법
         if classification == "get_my_orders":
             orders = my_orders(db=db, current_member=current_member)
             data = _format_orders(orders)
-            response_text = generate_response(body.message, data)
-            # response_text = generate_response_langchain(body.message, data)
+            # response_text = generate_response(body.message, data)
+            response_text = generate_response_langchain(body.message, data)
         # 민감정보의 경우 sLLM을 통해 응답생성
         elif classification == "get_my_profile":
             member = my_page(current_member=current_member)
@@ -64,15 +66,16 @@ def create_chat(
             data = _format_profile(member)
             print(data)
             response_text = generate_response_langchain_sllm(body.message, data)
-        elif classification == "get_policy":
+        # elif classification == "get_policy":
+        else:
             context = search_policy(body.message)
             # response_text = generate_response(body.message, context)
-            response_text = generate_response_langchain(body.message, context)
+            # response_text = generate_response_langchain(body.message, context)
             # # 최근대화고려 작업(Window Memory): 응답시 최근 5턴 대화 기록을 함께 전달
-            # history = load_chat_history(current_member.id, db)
-            # response_text = generate_response_langchain_memory(body.message, context, history)
-        else:
-            response_text = generate_general_response(body.message)
+            history = load_chat_history(current_member.id, db)
+            response_text = generate_response_langchain_memory(body.message, context, history)
+        # else:
+        #     response_text = generate_general_response(body.message)
 
         # redis stack에 질문/응답을 저장
         # store: member_id 포함 (flush_by_member로 사용자별 선택 삭제 가능)

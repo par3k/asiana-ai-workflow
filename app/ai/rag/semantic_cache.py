@@ -76,6 +76,7 @@ class SemanticCache:
             pass  # 이미 존재하면 스킵
 
 
+    # 저장
     def store(self, question: str, response: str, member_id: int) -> None:
         if not self._available:
             return
@@ -93,7 +94,7 @@ class SemanticCache:
                     "question_embedding": embedding,
                 },
             )
-            self.r.expire(key, CACHE_TTL)
+            self.r.expire(key, CACHE_TTL) # 24시간으로 TTL 설정
             print(f"[SemanticCache] 저장 완료 (member_id={member_id}, TTL: {CACHE_TTL}초): {question[:40]}...")
 
         except Exception as e:
@@ -103,6 +104,7 @@ class SemanticCache:
         vector = self.embeddings.embed_query(text)
         return np.array(vector, dtype=np.float32).tobytes()
 
+    # 검색
     # 흐름
     # 1. Redis에서 유사한 질문 벡터 검색
     # 2. 유사도 >= 임계치(0.9) 이면 저장된 응답 반환(캐시 HIT)
@@ -112,9 +114,11 @@ class SemanticCache:
         if not self._available:
             return None
         try:
+            # 사용자의 질문을 임베딩
             query_embedding = self._embed(question)
 
             # 아래 쿼리는 Redis Stack(RediSearch)의 고유 문법
+            # score를 기반으로 1개만 추출
             q = (
                 Query(f"(@member_id:{{{member_id}}})=>[KNN 1 @question_embedding $vec AS score]")
                 .sort_by("score")
@@ -137,6 +141,7 @@ class SemanticCache:
 
             print(f"[SemanticCache] 유사도: {similarity:.4f} (member_id={member_id})")
 
+            # 유사도가 0.9 이하면 패스
             if similarity < CACHE_THRESHOLD:
                 print("[SemanticCache] 미스")
                 return None
