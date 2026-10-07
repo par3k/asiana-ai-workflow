@@ -50,6 +50,7 @@ def classify_message(message: str) -> str:
                 choice.finish_reason, _usage(response), elapsed)
     return tool_calls[0].function.name
 
+# 너무 긴 문장을 만들 수 있을거같아.
 def generate_response(user_message: str, data: str) -> str:
     model = "gpt-4.1-mini"
     logger.info("OpenAI 응답생성 요청 model=%s 질문=%r 참고데이터=%r", model, _preview(user_message), _preview(data))
@@ -68,8 +69,8 @@ def generate_response(user_message: str, data: str) -> str:
                     "content": user_message,
                 },
             ],
-            temperature=0.3,
-            # max_completion_tokens=100
+            temperature=0.302,
+            # max_completion_tokens=50
         )
     except Exception:
         logger.exception("OpenAI 응답생성 호출 실패 (%.0fms)", (time.perf_counter() - start) * 1000)

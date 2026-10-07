@@ -16,6 +16,7 @@ embeddings = OpenAIEmbeddings(
 # langchain_pg_collection(컬렉션 목록 테이블), langchain_pg_embedding(실제 데이터 테이블)  
 # langchain_pg_embedding : id, collection_id, embedding(vector), document(text) 컬럼으로 구성
     
+# PGVector 클래스를 이용해 문자를 벡터값으로 전환함
 vector_store = PGVector(
     embeddings=embeddings,
     connection=_DATABASE_URL,
