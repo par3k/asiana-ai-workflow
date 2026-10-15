@@ -14,7 +14,7 @@
 - 관측: LangSmith, Langfuse (키는 `.env`)
 
 ## 코드 구조 (`app/`)
-- `main.py`: 앱 진입점. 시작 시 `setup_logging()`과 `create_all`, 종료 시 action_graph의 checkpointer 커넥션 풀 close
+- `main.py`: 앱 진입점. 시작 시 `setup_logging()`과 `create_all`, 종료 시 check_pointer의 checkpointer 커넥션 풀 close
 - `middleware.py`: 모든 API 요청을 `api.access` 로그로 기록(요청ID, method, path+query, member_id, client, 상태코드, 소요시간). 비밀번호 등이 있을 수 있어 요청 body와 토큰 값은 기록하지 않는다. 응답 헤더에 `X-Request-ID`
 - 라우터별 업무 로그(`api.member/order/product/document/chat`): 가입·로그인 성공/실패, 주문 생성/취소, 상품 등록/수정/조회, 문서 추가/수정, 챗 질문(100자)·분류·응답길이
 - `logging_config.py`: 로그 파일 롤링. `logs/app.log`(10MB x 5개 보관), `print()`·uvicorn·root 로거를 함께 기록. 위치는 `LOG_DIR`로 변경 가능. 실행되는 SQL(`sqlalchemy.engine`)도 파일에만 기록하며, 바인딩 파라미터는 `database.py`의 `hide_parameters`로 숨기고(`SQL_LOG_PARAMS=true`면 표시), 한 건이 1500자를 넘으면 잘라서 기록한다. `SQL_LOG=false`로 끌 수 있다
@@ -29,6 +29,7 @@
   - `action/`: tool calling 기반 주문/상품 액션 (`registry`, `order_actions`, `product_actions`, `action_pipeline`)
 - `ai/langgraph/`: 위 파이프라인의 LangGraph 버전
   - `main_graph`(최상위), `get_api_graph`(서브), `sql_graph`, `action_graph`(HITL interrupt + PostgresSaver), `state`, `parallel_reducer_streaming`(reducer 실습용)
+  - `check_pointer.py`: PostgresSaver checkpointer와 커넥션 풀(`main_checkpointer`, `main_checkpointer_connector`). `main_graph`가 컴파일 시 주입하고 `main.py`가 종료 시 풀을 close. 호출 시 `thread_id` 필수
 - `ai/langsmith/`: 평가 데이터셋(jsonl)과 실행 스크립트
 - `ai/sllm_pinetunning/`: sLLM LoRA 파인튜닝 스크립트 1~4 + Modelfile (디렉터리명 오타 `pinetunning`은 원본 그대로)
 
@@ -93,3 +94,4 @@
 - 2026-10-06: 커밋/push는 허락 없이 처리하고 결과를 보고하도록 규칙 변경
 - 2026-10-06: OpenAI 직접 호출(`classify_message`, `generate_response`) 통신 로그(`api.llm`) 추가
 - 2026-10-15: `POST /chats`를 LangGraph(`run_chat_graph`) 경로로 전환, 노드 상태값 print와 주석 보강, `ChatGraphState`에 sql/action 서브그래프 필드 활성화
+- 2026-10-15: checkpointer를 `check_pointer.py`로 분리해 main_graph에 주입, sql_graph/action_graph를 get_api_graph의 서브그래프 노드로 직접 연결, main.py의 풀 close import 수정
