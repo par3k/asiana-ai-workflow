@@ -33,8 +33,8 @@
 - `ai/sllm_pinetunning/`: sLLM LoRA 파인튜닝 스크립트 1~4 + Modelfile (디렉터리명 오타 `pinetunning`은 원본 그대로)
 
 ## 챗 파이프라인 현황 (중요)
-- `routers/chat.py`의 `POST /chats`는 **현재 LangGraph를 쓰지 않는다.** `run_chat_graph` / `run_chat_graph_hitl` 호출은 주석 처리되어 있고, `classify_message`(OpenAI 직접 호출) 기반 if/elif 분기(get_my_orders / get_my_profile / get_policy / 그 외)로 동작한다. get_api 분기도 주석 처리 상태다.
-- LangGraph 경로(캐시 → 1차 분류 → get_api(QUERY/ACTION/GENERAL)/profile/policy/general → 캐시 저장)는 `main_graph.py`에 구현되어 있다. 쓰려면 chat.py의 주석을 전환해야 한다.
+- `routers/chat.py`의 `POST /chats`는 **현재 LangGraph(`run_chat_graph`)를 쓴다.** 기존 if/elif 분기(캐시 → `classify_message_langchain` → get_api/profile/policy)는 chat.py에 주석으로 남겨 두었고, `run_chat_graph_hitl`(HITL)과 n8n 호출도 주석 처리 상태다.
+- LangGraph 경로(캐시 → 1차 분류 → get_api(QUERY/ACTION/GENERAL)/profile/policy/general → 캐시 저장)는 `main_graph.py`에 구현되어 있다. 되돌리려면 chat.py의 주석을 전환한다. 각 노드는 `[LangGraph] 상태값 확인` 로그를 출력한다.
 - ACTION은 실행 전 `interrupt()`로 사용자 확인("예/아니오")을 받는다(HITL). 대기 상태는 `thread_id=member-{id}`로 저장된다.
 - `GET /chats/reducer-streaming`은 병렬 노드 + reducer 확인용 테스트 엔드포인트다.
 - `classify_message_n8n`은 `http://localhost:5678` n8n 웹훅 호출용이며 현재 사용하지 않는다.
@@ -92,3 +92,4 @@
 - 2026-10-06: 실행 SQL 로그(`sqlalchemy.engine`) 추가 (파라미터 숨김, 파일 전용)
 - 2026-10-06: 커밋/push는 허락 없이 처리하고 결과를 보고하도록 규칙 변경
 - 2026-10-06: OpenAI 직접 호출(`classify_message`, `generate_response`) 통신 로그(`api.llm`) 추가
+- 2026-10-15: `POST /chats`를 LangGraph(`run_chat_graph`) 경로로 전환, 노드 상태값 print와 주석 보강, `ChatGraphState`에 sql/action 서브그래프 필드 활성화

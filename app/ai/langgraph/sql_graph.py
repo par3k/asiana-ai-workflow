@@ -23,6 +23,8 @@ MAX_ATTEMPTS = 3
 # def generate_sql_node(state: ChatGraphState) -> dict:
 # 나머지 node와 edge도 모두 SqlGraphState로 변경
 def generate_sql_node(state: SqlGraphState) -> dict:
+    print("[LangGraph] 상태값 확인", state)
+    print("[LangGraph][SQL] =========== sql graph 시작 ===========")
     print("[LangGraph][SQL] SQL 생성 시도 #1")
     sql = generate_sql(state["message"])
     return {"current_sql": sql, "retry_count": 0}
