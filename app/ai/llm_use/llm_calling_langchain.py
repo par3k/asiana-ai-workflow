@@ -5,18 +5,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from app.ai.llm_use.classification_list import TOOLS
 
-llm_classify = ChatOpenAI(
-    model="gpt-4.1-mini",
-    api_key=os.getenv("OPENAI_API_KEY"),
-    temperature=0
-)
-
-llm_response = ChatOpenAI(
-    model="gpt-4.1-mini",
-    api_key=os.getenv("OPENAI_API_KEY"),
-    temperature=0.3  
-)
-
 
 llm_response_llama = ChatOllama(
     model="llama3.2:3b",
@@ -32,7 +20,13 @@ llm_chat = ChatOpenAI(
     max_tokens=500,
 )
 
-# langchain에서는 아래와 같이 모델만 변경하면 쉽게 코드 리팩토링 가능  *****
+llm_classify = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
+    temperature=0
+)
+
+# langchain에서는 아래와 같이 모델만 변경하면 쉽게 코드 리팩토링 가능 
 # llm_classify = ChatGoogleGenerativeAI(model="gemini-1.5-pro")
 # llm_classify = ChatAnthropic(model="claude-opus-4-5")
 # 모델이 바뀌어도 bind_tools(), invoke(), StrOutputParser() 등 나머지 코드는 그대로 사용 가능
@@ -47,17 +41,21 @@ def classify_message_langchain(message: str) -> str:
     return tool_calls[0]["name"]
 
 
+llm_response = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
+    temperature=0.3  
+)
+
 def generate_response_langchain(user_message: str, data: str) -> str:
     prompt = ChatPromptTemplate.from_messages([
         ("system", "사용자의 질문에 대해 아래 참고 데이터를 바탕으로 사용자의 질문에 답변해. 만약 참고데이터에 적절한 내용이 없으면 응답불가합니다 라고 답변해. \n\n[참고 데이터]\n{data}"),
-        ("user", "{user_message}"), # 재사용을 위해서 여기는 dynamic value로 설정
+        ("user", "{user_message}"),
     ])
     #  LCEL(LangChain Expression Language) 
     #  파이프 연산자로 컴포넌트를 연결하는 방식
     chain = prompt | llm_response | StrOutputParser()
-    print("체인")
-    print(chain)
-    response = chain.invoke({ # invoke 메서드가 실행
+    response = chain.invoke({
         "data": data,
         "user_message": user_message
     })
@@ -80,8 +78,7 @@ def generate_response_langchain_memory(user_message: str, data: str, history: li
         ("user", "{user_message}"),
     ])
     chain = prompt | llm_response | StrOutputParser()
-    print("체인")
-    print(chain)
+
     response = chain.invoke({
         "data": data,
         "user_message": user_message,
