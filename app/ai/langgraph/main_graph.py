@@ -23,12 +23,15 @@ from app.ai.rag.semantic_cache import semantic_cache
 
 # 캐시 확인 및 state갱신
 def check_cache_node(state: ChatGraphState) -> dict:
+    print("[LangGraph] 상태값 확인", state)
     cached_response = semantic_cache.search(state["message"], state["member_id"])
+    # 조회 결과가 있으면 HIT : True
     if cached_response:
         print(f"[LangGraph] 캐시 조회 결과: {cached_response}")
         return {"response": cached_response, "cache_hit": True}
+    # 조회 결과가 없어 HIT : False
     print("[LangGraph] 캐시 조회 결과: MISS")
-    return {"cache_hit": False}
+    return {"cache_hit": False} # 리턴한 값이 state에 반영됨
 
 def route_after_cache(state: ChatGraphState) -> str:
     decision = "hit" if state.get("cache_hit") else "miss"
@@ -38,6 +41,7 @@ def route_after_cache(state: ChatGraphState) -> str:
 
 # 1차분류 : get_api, get_my_profile, get_policy
 def classify_message_node(state: ChatGraphState) -> dict:
+    print("[LangGraph] 상태값 확인", state)
     classification = classify_message_langchain(state["message"])
     print(f"[LangGraph] 1차 분류 결과: {classification}")
     return {"classification": classification}
@@ -119,7 +123,7 @@ def store_cache_node(state: ChatGraphState) -> dict:
     semantic_cache.store(state["message"], state["response"], state["member_id"])
     return {}
 
-
+# 그래프를 만듦
 def build_chat_graph():
     # Node는 처리 작업, State는 데이터 묶음으로 노드들에게 전달되고, 변경되고, 공유
     graph = StateGraph(ChatGraphState)
@@ -177,8 +181,13 @@ def build_chat_graph():
     graph.add_edge("store_cache", END)
 
     return graph.compile()
+'''
+A -> B -> c -> f
+       -> b -> f
+       -> d -> f
+'''
 
-
+# 그래프를 Build하며 생성
 chat_graph = build_chat_graph()
 
 # 그래프 구조를 서버 기동 시 1회 콘솔에 출력 (노드/엣지 전체를 한눈에 확인용)

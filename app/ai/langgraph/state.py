@@ -28,19 +28,19 @@ class ChatGraphState(TypedDict, total=False):
     # HITL 을 위한 변수
     pending_confirm: Optional[dict]
 
-    # # sql_graph 서브그래프() 상태
-    # current_sql: str
-    # corrected_sql: Optional[str]
-    # validation_error: Optional[str]
-    # execution_error: Optional[str]
-    # retry_count: int  # 재시도 카운트
-    # query_results: list[dict[str, Any]]
+    # sql_graph 서브그래프() 상태
+    current_sql: str
+    corrected_sql: Optional[str]
+    validation_error: Optional[str]
+    execution_error: Optional[str]
+    retry_count: int  # 재시도 카운트
+    query_results: list[dict[str, Any]]
 
-    # # action_graph 상태
-    # category: Optional[str]
-    # selected_action_name: Optional[str]
-    # selected_action_args: dict
-    # action_error: Optional[str]
+    # action_graph 상태
+    category: Optional[str]
+    selected_action_name: Optional[str]
+    selected_action_args: dict
+    action_error: Optional[str]
 
 
     # 최종 응답
