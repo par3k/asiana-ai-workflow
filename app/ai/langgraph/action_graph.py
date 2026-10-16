@@ -116,9 +116,9 @@ def build_action_graph():
 
     graph.add_node("classify_category", classify_category_node)
     graph.add_node("select_action", select_action_node)
-    graph.add_node("execute_action", execute_action_node)
+    # graph.add_node("execute_action", execute_action_node)
     # # HITL 적용 시 위 코드 주석 후 아래 코드 주석 해제
-    # graph.add_node("execute_action", execute_action_node_hitl)
+    graph.add_node("execute_action", execute_action_node_hitl)
     graph.add_node("cannot_process", cannot_process_node)
     graph.add_node("action_failed", action_failed_node)
 
