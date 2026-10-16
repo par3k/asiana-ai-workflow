@@ -29,7 +29,7 @@ logger = logging.getLogger("api.chat")
 
 
 @router.post("", response_model=schemas.ChatResponse, status_code=status.HTTP_201_CREATED)
-# @traceable 
+@traceable 
 def create_chat(
     body: schemas.ChatRequest,
     db: Session = Depends(get_db),

@@ -69,7 +69,7 @@
 ### 보안
 - `.env`의 값(API 키, DB 비밀번호)을 출력하거나 문서에 적지 않는다. 키 이름만 언급한다.
 - `.env`는 `.gitignore`에 포함되어 있고 git 추적에서도 제외되어 있다. 커밋하지 않는다.
-- 사용자 환경변수(`setx`)에는 `OPENAI_API_KEY`만 설정되어 있다. 새 터미널에서는 `.env`보다 이 값이 우선한다.
+- 사용자 환경변수(`setx`)에는 `OPENAI_API_KEY`, `LANGSMITH_API_KEY`가 설정되어 있다(`.env`에는 LangSmith 키 없음). `load_dotenv()`는 기존 환경변수를 덮어쓰지 않아 새 터미널에서는 `.env`보다 이 값이 우선한다. LangSmith 401이 나면 이 사용자 환경변수 키를 재발급해 `setx`로 교체한다.
 - 과거 커밋 기록에는 `.env`가 남아 있을 수 있다. 키 재발급은 사용자가 판단한다.
 
 ## 개발 환경
@@ -96,3 +96,4 @@
 - 2026-10-15: `POST /chats`를 LangGraph(`run_chat_graph`) 경로로 전환, 노드 상태값 print와 주석 보강, `ChatGraphState`에 sql/action 서브그래프 필드 활성화
 - 2026-10-15: checkpointer를 `check_pointer.py`로 분리해 main_graph에 주입, sql_graph/action_graph를 get_api_graph의 서브그래프 노드로 직접 연결, main.py의 풀 close import 수정
 - 2026-10-16: `POST /chats`를 HITL 경로(`run_chat_graph_hitl`)로 전환, `/chats/reducer-streaming`을 astream 기반 SSE 스트리밍으로 변경
+- 2026-10-16: LangSmith trace 활성화(`@traceable`), LangSmith 키 401 원인(만료된 사용자 환경변수 키)과 교체 방법 기록
