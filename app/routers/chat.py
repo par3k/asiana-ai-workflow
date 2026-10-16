@@ -82,9 +82,9 @@ def create_chat(
     #     semantic_cache.store(body.message, response_text, current_member.id)
 
     # LangGraph 적용 : 캐시 조회부터 if/elif/else 분기 전체를 run_chat_graph줄로 대체
-    response_text = run_chat_graph(body.message, db, current_member)
+    # response_text = run_chat_graph(body.message, db, current_member)
     # # HITL 적용
-    # response_text = run_chat_graph_hitl(body.message, db, current_member)
+    response_text = run_chat_graph_hitl(body.message, db, current_member)
 
     # # N8N 적용
     # # n8n 호출 시 사용자 토큰을 Authorization 헤더로 함께 전달
@@ -143,17 +143,17 @@ from app.ai.langgraph.parallel_reducer_streaming import sandbox_graph
 import json
 from fastapi.responses import StreamingResponse
 @router.get("/reducer-streaming")
-def test_reducer():
+async def test_reducer():
 
-    result = sandbox_graph.invoke({"contexts": []})
-    return {
-        "contexts": "\n".join(result["contexts"])
-    }
+#     result = sandbox_graph.invoke({"contexts": []})
+#     return {
+#         "contexts": "\n".join(result["contexts"])
+#     }
 
-    # async def event_generator():
-    #     async for chunk in sandbox_graph.astream({"contexts": []}, stream_mode="updates"):
-    #         data = json.dumps(chunk, ensure_ascii=False)
-    #         yield f"data: {data}\n\n"
-    #     yield "data: [DONE]\n\n"
+    async def event_generator():
+        async for chunk in sandbox_graph.astream({"contexts": []}, stream_mode="updates"):
+            data = json.dumps(chunk, ensure_ascii=False)
+            yield f"data: {data}\n\n"
+        yield "data: [DONE]\n\n"
 
-    # return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
