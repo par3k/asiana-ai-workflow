@@ -23,7 +23,6 @@ def classify_message(message: str) -> str:
         messages=[{"role": "user", "content": message}],
         tools=ANTHROPIC_TOOLS,
         tool_choice={"type": "any"},
-        temperature=0,
     )
     tool_use_blocks = [block for block in response.content if block.type == "tool_use"]
     if not tool_use_blocks:
@@ -43,7 +42,6 @@ def generate_response(user_message: str, data: str) -> str:
                 "content": user_message,
             },
         ],
-        temperature=0.3,
     )
     text_blocks = [block for block in response.content if block.type == "text"]
     return text_blocks[0].text.strip() if text_blocks else ""
