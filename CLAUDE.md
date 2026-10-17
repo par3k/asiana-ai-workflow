@@ -10,7 +10,7 @@
 
 ## 기술 스택
 - 웹/DB: FastAPI, SQLAlchemy, PostgreSQL(pgvector), JWT(python-jose, bcrypt), Pydantic
-- AI: Anthropic Claude(claude-haiku-4-5, 채팅·분류용), OpenAI(임베딩 text-embedding-3-large만 사용), LangChain, LangGraph(+PostgresSaver checkpointer), BM25 하이브리드 검색, Ollama(sLLM), Redis Stack(시맨틱 캐시)
+- AI: OpenAI(gpt-4.1-mini, 임베딩 text-embedding-3-large), LangChain, LangGraph(+PostgresSaver checkpointer), BM25 하이브리드 검색, Ollama(sLLM), Redis Stack(시맨틱 캐시)
 - 관측: LangSmith, Langfuse (키는 `.env`)
 
 ## 코드 구조 (`app/`)
@@ -21,7 +21,7 @@
 - `routers/`: member(`/members` 가입/로그인/me), product, order, document, chat(`/chats`)
 - `services/`: auth, chat_service, order_service, product_service
 - `models/`, `schemas/`, `database.py`, `dependencies.py`: ORM, Pydantic, DB 세션, 인증 의존성
-- `ai/llm_use/`: LLM 호출 (Anthropic 직접 호출 `llm_calling_simple` — `classify_message`/`generate_response`의 요청·응답·토큰·소요시간·오류를 `api.llm` 로그로 기록(질문/응답은 200자까지), LangChain(Claude)/Ollama `llm_calling_langchain`, 분류 목록)
+- `ai/llm_use/`: LLM 호출 (OpenAI 직접 호출 `llm_calling_simple` — `classify_message`/`generate_response`의 요청·응답·토큰·소요시간·오류를 `api.llm` 로그로 기록(질문/응답은 200자까지), LangChain/Ollama `llm_calling_langchain`, 분류 목록)
 - `ai/rag/`: retriever(하이브리드 검색), vector_store, memory(대화 이력), semantic_cache(Redis)
 - `ai/api_use/`: 1차 분류 후 get_api 처리
   - `chat_classify.py`, `intent_list.py`: QUERY / ACTION / GENERAL 2차 분류
@@ -76,7 +76,7 @@
 - Python 3.13 가상환경: `.venv` (3.14는 일부 패키지 wheel이 없어 사용하지 않음). 새로 받았다면 `py -3.13 -m venv .venv` → `pip install -r requirements.txt`
 - 실행: `.venv\Scripts\activate` 후 `uvicorn app.main:app --reload` (기본 포트 8000, 문서 `/docs`)
 - DB: 사용자가 Docker로 직접 띄운 PostgreSQL(pgvector) 컨테이너 `postgres-db-with-vector`, 호스트 포트 **5433**, DB 이름 `ai_agent_db`. `action_graph`의 checkpointer도 같은 `DATABASE_URL`로 별도 커넥션 풀을 연다.
-- `.env` 키: `DATABASE_URL`, `SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `OPENAI_API_KEY`(임베딩 전용), `ANTHROPIC_API_KEY`(채팅·분류 LLM), `USE_SEMANTIC_CACHE`, `LANGSMITH_TRACING`, `LANGSMITH_PROJECT`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_BASE_URL`
+- `.env` 키: `DATABASE_URL`, `SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `OPENAI_API_KEY`, `USE_SEMANTIC_CACHE`, `LANGSMITH_TRACING`, `LANGSMITH_PROJECT`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_BASE_URL`
 - 코드가 읽는 선택 환경변수(`.env`에 없으면 기본값): `REDIS_HOST`(localhost), `REDIS_PORT`(6379), `SEMANTIC_CACHE_TTL`(86400), `LOG_DIR`(프로젝트 루트/logs), `SQL_LOG`(true), `SQL_LOG_PARAMS`(false), `HF_TOKEN`(파인튜닝 전용)
 - 로그: 콘솔과 함께 `logs/app.log`에 기록된다(`logs/`는 `.gitignore` 대상). 로그 파일은 `Get-Content -Encoding UTF8`로 읽는다(그냥 열면 한글이 깨져 보인다).
 - `USE_SEMANTIC_CACHE=false`이면 Redis Stack 없이도 `/chats`가 동작한다.
@@ -97,4 +97,4 @@
 - 2026-10-15: checkpointer를 `check_pointer.py`로 분리해 main_graph에 주입, sql_graph/action_graph를 get_api_graph의 서브그래프 노드로 직접 연결, main.py의 풀 close import 수정
 - 2026-10-16: `POST /chats`를 HITL 경로(`run_chat_graph_hitl`)로 전환, `/chats/reducer-streaming`을 astream 기반 SSE 스트리밍으로 변경
 - 2026-10-16: LangSmith trace 활성화(`@traceable`), LangSmith 키 401 원인(만료된 사용자 환경변수 키)과 교체 방법 기록
-- 2026-10-17: 채팅·분류용 LLM을 OpenAI(gpt-4.1-mini)에서 Anthropic Claude(claude-haiku-4-5)로 전환 (`llm_calling_simple`/`llm_calling_langchain`/`chat_classify`/`action_pipeline`/`registry`/`query/generator`/`query/response`). 임베딩(text-embedding-3-large)은 Claude에 임베딩 API가 없어 OpenAI 그대로 유지. `.env`에 `ANTHROPIC_API_KEY` 추가, `requirements.txt`에 `anthropic`/`langchain-anthropic` 추가
+- 2026-10-17: 채팅/분류용 LLM을 Anthropic Claude(claude-haiku-4-5)로 전환했다가 사용자 판단으로 OpenAI(gpt-4.1-mini)로 원복(`git revert`). `.env`의 `ANTHROPIC_API_KEY`는 남겨둠(해가 없어서), `requirements.txt`의 anthropic/langchain-anthropic 패키지는 제거

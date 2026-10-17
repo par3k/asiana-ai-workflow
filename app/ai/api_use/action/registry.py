@@ -1,7 +1,7 @@
 
 import os
 from sqlalchemy.orm import Session
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.ai.api_use.action import order_actions
@@ -52,9 +52,9 @@ def execute_action(action_name: str, args: dict, db: Session, member_id: int) ->
     return handler(args, db, member_id)
 
 # action 선택 및 파라미터 추출용 LLM
-_llm = ChatAnthropic(
-    model="claude-haiku-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
+_llm = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
     temperature=0,
 )
 
