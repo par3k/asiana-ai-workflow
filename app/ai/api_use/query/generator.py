@@ -1,7 +1,7 @@
 # SQL 생성
 import os
 import re
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_ollama import ChatOllama
@@ -17,9 +17,9 @@ from app.ai.api_use.query.schema_context import (
 
 #  LLM 인스턴스 (SQL 생성 전용)
 #  temperature=0: 재현 가능한 결정론적 SQL 생성
-llm_sql = ChatAnthropic(
-    model="claude-haiku-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
+llm_sql = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
     temperature=0,          # SQL은 창의성 불필요 → 0 고정
     max_tokens=1000,        # SQL이 지나치게 길어지는 것을 방지
 )

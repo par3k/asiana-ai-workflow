@@ -1,7 +1,7 @@
 # 사용자 메시지의 의도를 3가지로 분류하여 각 파이프라인으로 라우팅
 import os
 from sqlalchemy.orm import Session
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from .intent_list import INTENT_LIST
 
@@ -26,11 +26,11 @@ def process_api_request(message: str, db: Session, member_id: int) -> str:
         return generate_general_response(message)
 
 #  의도 분류 LLM. 셋 중 하나의 도구를 반드시 호출하도록 강제.
-_llm_classify = ChatAnthropic(
-    model="claude-haiku-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
+_llm_classify = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
     temperature=0,  # 분류 목적의 낮은 temperature값 설정.
-).bind_tools(INTENT_LIST, tool_choice="any")  # Claude는 tool_choice="required"를 지원하지 않아 "any"로 강제 호출
+).bind_tools(INTENT_LIST, tool_choice="required")
 
 # 사용자 메시지 의도 분류: "QUERY" | "ACTION" | "GENERAL"
 def classify_intent(user_message: str) -> str:

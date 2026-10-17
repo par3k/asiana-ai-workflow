@@ -2,15 +2,15 @@
 import os
 import json
 from typing import Any
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 #  SQL 조회후 응답 생성용 LLM
 #  temperature=0.3: 약간의 자연스러움을 허용하되 일관성 유지
-llm_format = ChatAnthropic(
-    model="claude-haiku-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
+llm_format = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
     temperature=0.3,
     max_tokens=1500,
 )

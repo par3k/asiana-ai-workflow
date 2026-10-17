@@ -1,5 +1,5 @@
 import os
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
@@ -13,22 +13,22 @@ llm_response_llama = ChatOllama(
 
 #  SQL 조회없는 일반대화 응답 생성 LLM
 #  temperature=0.5: 더 높은 자유도 부여
-llm_chat = ChatAnthropic(
-    model="claude-haiku-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
+llm_chat = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
     temperature=0.5,
     max_tokens=500,
 )
 
-llm_classify = ChatAnthropic(
-    model="claude-haiku-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
+llm_classify = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
     temperature=0
 )
 
-# langchain에서는 아래와 같이 모델만 변경하면 쉽게 코드 리팩토링 가능
+# langchain에서는 아래와 같이 모델만 변경하면 쉽게 코드 리팩토링 가능 
 # llm_classify = ChatGoogleGenerativeAI(model="gemini-1.5-pro")
-# llm_classify = ChatOpenAI(model="gpt-4.1-mini")
+# llm_classify = ChatAnthropic(model="claude-opus-4-5")
 # 모델이 바뀌어도 bind_tools(), invoke(), StrOutputParser() 등 나머지 코드는 그대로 사용 가능
 llm_with_tools = llm_classify.bind_tools(TOOLS)
 
@@ -41,10 +41,10 @@ def classify_message_langchain(message: str) -> str:
     return tool_calls[0]["name"]
 
 
-llm_response = ChatAnthropic(
-    model="claude-haiku-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
-    temperature=0.3
+llm_response = ChatOpenAI(
+    model="gpt-4.1-mini",
+    api_key=os.getenv("OPENAI_API_KEY"),
+    temperature=0.3  
 )
 
 def generate_response_langchain(user_message: str, data: str) -> str:
