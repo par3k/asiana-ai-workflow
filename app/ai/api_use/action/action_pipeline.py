@@ -1,7 +1,7 @@
 
 import os
 from sqlalchemy.orm import Session
-from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -33,9 +33,9 @@ def call_action_pipeline(user_message: str, db: Session, member_id: int) -> str:
 
 # 1단계: 카테고리 분류용 LLM
 # 파라미터 추출은 창의성 불필요하므로, temperature=0. 카테고리 이름만 출력하면 되므로 max_tokens 최소화
-_llm_classify = ChatOpenAI(
-    model="gpt-4.1-mini",
-    api_key=os.getenv("OPENAI_API_KEY"),
+_llm_classify = ChatAnthropic(
+    model="claude-haiku-4-5",
+    api_key=os.getenv("ANTHROPIC_API_KEY"),
     temperature=0,
     max_tokens=20,
 )

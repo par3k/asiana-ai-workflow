@@ -1,37 +1,49 @@
 import os
-from openai import OpenAI
+from anthropic import Anthropic
 from .classification_list import TOOLS
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+# TOOLS는 OpenAI function-calling 포맷(type/function/parameters)으로 정의되어 있어
+# Anthropic SDK가 요구하는 포맷({name, description, input_schema})으로 변환
+ANTHROPIC_TOOLS = [
+    {
+        "name": tool["function"]["name"],
+        "description": tool["function"]["description"],
+        "input_schema": tool["function"]["parameters"],
+    }
+    for tool in TOOLS
+]
+
+
 def classify_message(message: str) -> str:
-    response = client.chat.completions.create(
-        # temperature는 분류 작업에 맞는 낮은 값으로 설정. 기본값은 1
-        model="gpt-4.1-mini",
+    response = client.messages.create(
+        model="claude-haiku-4-5",
+        max_tokens=100,
         messages=[{"role": "user", "content": message}],
-        tools=TOOLS,
-        tool_choice="auto",
-        temperature=0
-        )
-    tool_calls = response.choices[0].message.tool_calls
-    if not tool_calls:
+        tools=ANTHROPIC_TOOLS,
+        tool_choice={"type": "any"},
+        temperature=0,
+    )
+    tool_use_blocks = [block for block in response.content if block.type == "tool_use"]
+    if not tool_use_blocks:
         return "답변이 어려운 질문입니다."
-    return tool_calls[0].function.name
+    return tool_use_blocks[0].name
+
 
 def generate_response(user_message: str, data: str) -> str:
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
+    response = client.messages.create(
+        model="claude-haiku-4-5",
+        max_tokens=500,
+        system=f"사용자의 질문에 대해 아래 참고 데이터를 바탕으로 사용자의 질문에 답변해. "
+               f"만약 참고데이터에 적절한 내용이 없으면 응답불가합니다 라고 답변해. \n\n[참고 데이터]\n{data}",
         messages=[
-            {
-                "role": "system",
-                "content": f"사용자의 질문에 대해 아래 참고 데이터를 바탕으로 사용자의 질문에 답변해. "
-                           f"만약 참고데이터에 적절한 내용이 없으면 응답불가합니다 라고 답변해. \n\n[참고 데이터]\n{data}",
-            },
             {
                 "role": "user",
                 "content": user_message,
             },
         ],
         temperature=0.3,
-        # max_completion_tokens=100
     )
-    return response.choices[0].message.content.strip()
+    text_blocks = [block for block in response.content if block.type == "text"]
+    return text_blocks[0].text.strip() if text_blocks else ""

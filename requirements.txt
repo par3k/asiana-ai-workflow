@@ -9,10 +9,12 @@ python-dotenv # load .env
 pydantic[email] # data validation
 
 # ai tool
-openai # OpenAI API client
+openai # OpenAI API client (임베딩 text-embedding-3-large 용도로 유지)
+anthropic # Anthropic(Claude) API client
 pgvector # vector similarity search extension for PostgreSQL
 langchain # LLM orchestration framework, +LangSmith
-langchain-openai  # LangChain + OpenAI integration
+langchain-openai  # LangChain + OpenAI integration (임베딩 용도로 유지)
+langchain-anthropic # LangChain + Anthropic(Claude) integration
 langchain-postgres # LangChain + PostgreSQL vector store
 langchain-text-splitters # LangChain chunking utility
 langchain-community # BM25Retriever 
