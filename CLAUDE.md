@@ -97,3 +97,4 @@
 - 2026-10-15: checkpointer를 `check_pointer.py`로 분리해 main_graph에 주입, sql_graph/action_graph를 get_api_graph의 서브그래프 노드로 직접 연결, main.py의 풀 close import 수정
 - 2026-10-16: `POST /chats`를 HITL 경로(`run_chat_graph_hitl`)로 전환, `/chats/reducer-streaming`을 astream 기반 SSE 스트리밍으로 변경
 - 2026-10-16: LangSmith trace 활성화(`@traceable`), LangSmith 키 401 원인(만료된 사용자 환경변수 키)과 교체 방법 기록
+- 2026-10-17: 채팅/분류용 LLM을 Anthropic Claude(claude-haiku-4-5)로 전환했다가 사용자 판단으로 OpenAI(gpt-4.1-mini)로 원복(`git revert`). `.env`의 `ANTHROPIC_API_KEY`는 남겨둠(해가 없어서), `requirements.txt`의 anthropic/langchain-anthropic 패키지는 제거
